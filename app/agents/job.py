@@ -15,12 +15,16 @@ class JobSearch:
     def __init__(self):
         """Initialize the job search agent."""
         # Initialize the chat model and search tools
-        self.model = ChatGoogleGenerativeAI(
-            model=GEMINI_PRO_MODEL,
-            google_api_key=GOOGLE_API_KEY
-        )
-        self.search_tool = DuckDuckGoSearchResults()
-        self.use_fallback = USE_MOCK_RESPONSES
+        try:
+            self.model = ChatGoogleGenerativeAI(
+                model=GEMINI_PRO_MODEL,
+                google_api_key=GOOGLE_API_KEY
+            )
+            self.search_tool = DuckDuckGoSearchResults()
+            self.use_fallback = USE_MOCK_RESPONSES
+        except Exception as e:
+            print(f"Initialization error: {str(e)}")
+            self.use_fallback = True
         
     def _fallback_response(self, query: str) -> str:
         """Generate a fallback response when API limits are reached."""
@@ -74,12 +78,27 @@ class JobSearch:
 
     async def find_jobs_async(self, query: str) -> Dict[str, str]:
         """Search for jobs based on the user's query asynchronously."""
+        content = None
         try:
             if self.use_fallback:
                 content = self._fallback_response(query)
             else:
                 # Perform the search using async DuckDuckGo search
-                search_results = await self.search_tool.ainvoke(f"job listings {query}")
+                try:
+                    search_results = await self.search_tool.ainvoke(f"job listings {query}")
+                except Exception as search_error:
+                    print(f"Search tool error: {str(search_error)}")
+                    search_results = "No results found. Using default response."
+                    self.use_fallback = True
+                    content = self._fallback_response(query)
+                    return {
+                        "content": content,
+                        "file_path": save_file(
+                            content=content,
+                            filename=f"job_search_{query.replace(' ', '_')[:30]}",
+                            extension="md"
+                        )
+                    }
 
                 # Create a prompt for job search
                 prompt = ChatPromptTemplate.from_template(
