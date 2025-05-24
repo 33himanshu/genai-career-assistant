@@ -79,16 +79,18 @@ class JobSearch:
     async def find_jobs_async(self, query: str) -> Dict[str, str]:
         """Search for jobs based on the user's query asynchronously."""
         content = None
+        search_results = None
+        
         try:
             if self.use_fallback:
                 content = self._fallback_response(query)
             else:
                 # Perform the search using async DuckDuckGo search
                 try:
-                    search_results = await self.search_tool.ainvoke(f"job listings {query}")
+                    async with DuckDuckGoSearchResults() as searcher:
+                        search_results = await searcher.ainvoke(f"job listings {query}")
                 except Exception as search_error:
                     print(f"Search tool error: {str(search_error)}")
-                    search_results = "No results found. Using default response."
                     self.use_fallback = True
                     content = self._fallback_response(query)
                     return {
