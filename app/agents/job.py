@@ -1,5 +1,7 @@
 from typing import List, Dict, Any
 import random
+import asyncio
+from contextlib import asynccontextmanager
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.tools import DuckDuckGoSearchResults
@@ -69,76 +71,75 @@ class JobSearch:
 
 *Note: These job listings are examples based on your search query. For the most current opportunities, visit job boards like LinkedIn, Indeed, or company career pages.*
 """
-        
-    def find_jobs(self, query: str) -> Dict[str, str]:
-        """Search for jobs based on the user's query.
-        
-        Args:
-            query: The user's job search query
-            
-        Returns:
-            A dictionary containing the search results and file path
-        """
-        # If we're in testing mode or have hit API limits before, use fallback
-        if self.use_fallback:
-            content = self._fallback_response(query)
-            file_path = save_file(
-                content=content,
-                filename=f"job_search_{query.replace(' ', '_')[:30]}",
-                extension="md"
-            )
-            
-            return {
-                "content": content,
-                "file_path": file_path
-            }
-            
+
+    async def find_jobs_async(self, query: str) -> Dict[str, str]:
+        """Search for jobs based on the user's query asynchronously."""
         try:
-            # Create a prompt for job search
-            prompt = ChatPromptTemplate.from_template(
-                "You are a helpful job search assistant. I'll provide you with a job search query, "
-                "and you'll help me find relevant job listings.\n\n"
-                "Here's some information I found from a web search that might be helpful:\n"
-                "{search_results}\n\n"
-                "Based on this information, please provide a detailed list of job opportunities "
-                "that match my search criteria. Include:\n"
-                "1. Job titles\n"
-                "2. Companies\n"
-                "3. Locations\n"
-                "4. Brief descriptions\n"
-                "5. Application links (very important - if a direct application link is found in the search results)\n"
-                "6. Source website (e.g. LinkedIn, Indeed,internshala,naukari etc.)\n\n"
-                "Format your response in markdown and make sure to include clickable links when available. "
-                "For jobs without direct application links, include a link to the job search page on the source website.\n\n"
-                "My job search query is: {query}"
-            )
-            
-            # Perform the search
-            search_results = self.search_tool.invoke(f"job listings {query}")
-            
-            # Generate the response
-            chain = prompt | self.model
-            response = chain.invoke({
-                "query": query,
-                "search_results": search_results
-            })
-            
-            content = response.content
+            if self.use_fallback:
+                content = self._fallback_response(query)
+            else:
+                # Perform the search using async DuckDuckGo search
+                search_results = await self.search_tool.ainvoke(f"job listings {query}")
+
+                # Create a prompt for job search
+                prompt = ChatPromptTemplate.from_template(
+                    "You are a helpful job search assistant. I'll provide you with a job search query, "
+                    "and you'll help me find relevant job listings.\n\n"
+                    "Here's some information I found from a web search that might be helpful:\n"
+                    "{search_results}\n\n"
+                    "Based on this information, please provide a detailed list of job opportunities "
+                    "that match my search criteria. Include:\n"
+                    "1. Job titles\n"
+                    "2. Companies\n"
+                    "3. Locations\n"
+                    "4. Brief descriptions\n"
+                    "5. Application links (very important - if a direct application link is found in the search results)\n"
+                    "6. Source website (e.g. LinkedIn, Indeed, Internshala, Naukri etc.)\n\n"
+                    "Format your response in markdown and make sure to include clickable links when available. "
+                    "For jobs without direct application links, include a link to the job search page on the source website.\n\n"
+                    "My job search query is: {query}"
+                )
+
+                # Generate the response using the async chain
+                chain = prompt | self.model
+                response = await chain.ainvoke({
+                    "query": query,
+                    "search_results": search_results
+                })
+                
+                content = response.content
+
         except Exception as e:
-            print(f"API error: {str(e)}")
-            self.use_fallback = True
+            print(f"Search error: {str(e)}")
             content = self._fallback_response(query)
-        
+
         # Save the response to a file
         file_path = save_file(
             content=content,
             filename=f"job_search_{query.replace(' ', '_')[:30]}",
             extension="md"
         )
-        
+
         return {
             "content": content,
             "file_path": file_path
         }
+
+    def find_jobs(self, query: str) -> Dict[str, str]:
+        """Synchronous wrapper for job search. Prefer using find_jobs_async for async contexts."""
+        try:
+            return asyncio.run(self.find_jobs_async(query))
+        except Exception as e:
+            print(f"API error: {str(e)}")
+            content = self._fallback_response(query)
+            file_path = save_file(
+                content=content,
+                filename=f"job_search_{query.replace(' ', '_')[:30]}",
+                extension="md"
+            )
+            return {
+                "content": content,
+                "file_path": file_path
+            }
 
 
