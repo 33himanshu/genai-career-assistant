@@ -33,25 +33,33 @@ class JobSearch:
 **Company:** {random.choice(companies)}  
 **Location:** {random.choice(job_locations)}  
 **Salary Range:** $120,000 - $180,000  
-**Description:** Looking for an experienced software engineer with expertise in machine learning and AI systems. The ideal candidate will have experience with large language models and generative AI applications.
+**Description:** Looking for an experienced software engineer with expertise in machine learning and AI systems. The ideal candidate will have experience with large language models and generative AI applications.  
+**Apply:** [Click here to apply](https://careers.microsoft.com/ai-ml-engineer)  
+**Source:** Company Career Page
 
 ### 2. Machine Learning Engineer
 **Company:** {random.choice(companies)}  
 **Location:** {random.choice(job_locations)}  
 **Salary Range:** $110,000 - $160,000  
-**Description:** Join our team building next-generation AI products. You'll work on training and deploying models that power our core products.
+**Description:** Join our team building next-generation AI products. You'll work on training and deploying models that power our core products.  
+**Apply:** [Apply on LinkedIn](https://www.linkedin.com/jobs/ml-engineer)  
+**Source:** LinkedIn
 
 ### 3. AI Research Scientist
 **Company:** {random.choice(companies)}  
 **Location:** {random.choice(job_locations)}  
 **Salary Range:** $130,000 - $190,000  
-**Description:** Research role focused on advancing the state of the art in generative AI. PhD in Computer Science, Machine Learning, or related field preferred.
+**Description:** Research role focused on advancing the state of the art in generative AI. PhD in Computer Science, Machine Learning, or related field preferred.  
+**Apply:** [Apply on Indeed](https://www.indeed.com/ai-research-scientist)  
+**Source:** Indeed
 
 ### 4. Full Stack Developer with AI Experience
 **Company:** {random.choice(companies)}  
 **Location:** {random.choice(job_locations)}  
 **Salary Range:** $100,000 - $150,000  
-**Description:** Looking for developers who can build end-to-end applications that leverage AI capabilities. Experience with React, Node.js, and Python required.
+**Description:** Looking for developers who can build end-to-end applications that leverage AI capabilities. Experience with React, Node.js, and Python required.  
+**Apply:** [Apply on Glassdoor](https://www.glassdoor.com/full-stack-ai-developer)  
+**Source:** Glassdoor
 
 ## Job Search Tips
 - Update your resume to highlight AI/ML skills and projects
@@ -93,8 +101,15 @@ class JobSearch:
                 "Here's some information I found from a web search that might be helpful:\n"
                 "{search_results}\n\n"
                 "Based on this information, please provide a detailed list of job opportunities "
-                "that match my search criteria. Include job titles, companies, locations, "
-                "and brief descriptions when available. Format your response in markdown.\n\n"
+                "that match my search criteria. Include:\n"
+                "1. Job titles\n"
+                "2. Companies\n"
+                "3. Locations\n"
+                "4. Brief descriptions\n"
+                "5. Application links (very important - if a direct application link is found in the search results)\n"
+                "6. Source website (e.g. LinkedIn, Indeed,internshala,naukari etc.)\n\n"
+                "Format your response in markdown and make sure to include clickable links when available. "
+                "For jobs without direct application links, include a link to the job search page on the source website.\n\n"
                 "My job search query is: {query}"
             )
             
